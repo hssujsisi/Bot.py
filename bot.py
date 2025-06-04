@@ -29,14 +29,20 @@ updater = Updater(TOKEN, use_context=True)
 dp = updater.dispatcher
 dp.add_handler(CommandHandler('start', start))
 dp.add_handler(CommandHandler('register', register))
-from telegram.ext import Updater
+from telegram.ext import Updater, CommandHandler
 import os
 
+TOKEN = os.environ.get('TOKEN')
 PORT = int(os.environ.get('PORT', 5000))
+
+def start(update, context):
+    update.message.reply_text("ربات فعال است!")
+
+updater = Updater(TOKEN, use_context=True)
+updater.dispatcher.add_handler(CommandHandler('start', start))
 updater.start_webhook(
     listen="0.0.0.0",
     port=PORT,
     url_path=TOKEN,
-    webhook_url=f"https://your-render-app-name.onrender.com/{TOKEN}"
-)updater.start_polling()
-updater.idle()
+    webhook_url=f"https://your-app-name.onrender.com/{TOKEN}"
+)
