@@ -56,7 +56,7 @@ def receive_code(update, context):
         )
         return -1
     else:
-        update.message.reply_text("❌ کد باید 5 رقم باشد! دوباره وارد کنید:")
+        update.message.reply_text("❌کد باید 5 رقم باشد! دوباره وارد کنید:")
         return CODE
 
 def cancel(update, context):
