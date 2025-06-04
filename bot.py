@@ -2,7 +2,7 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Callb
 from telegram import ReplyKeyboardMarkup, KeyboardButton
 import logging
 
-TOKEN = "7893391053:AAEylzmxixnX3t35F8o5ZJwBx9dJnvkCSS8"
+TOKEN = "7915829620:AAGWEi4bSHfc9Ex7EykQxJ2b3zBxewuTjac"
 ADMIN_ID = "5040554415"
 PORT=5000
 
