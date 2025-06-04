@@ -4,6 +4,7 @@ import logging
 
 TOKEN = "7893391053:AAEylzmxixnX3t35F8o5ZJwBx9dJnvkCSS8"
 ADMIN_ID = "5040554415"
+PORT=5000
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
