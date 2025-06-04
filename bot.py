@@ -28,5 +28,14 @@ updater = Updater(TOKEN, use_context=True)
 dp = updater.dispatcher
 dp.add_handler(CommandHandler('start', start))
 dp.add_handler(CommandHandler('register', register))
-updater.start_polling()
+from telegram.ext import Updater
+import os
+
+PORT = int(os.environ.get('PORT', 5000))
+updater.start_webhook(
+    listen="0.0.0.0",
+    port=PORT,
+    url_path=TOKEN,
+    webhook_url=f"https://your-render-app-name.onrender.com/{TOKEN}"
+)updater.start_polling()
 updater.idle()
